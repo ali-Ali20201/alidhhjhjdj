@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>حسابك</title>
+<style>
+body{font-family:"Cairo",sans-serif;direction:rtl;text-align:center;background:#fafafa;margin:0}
+header{background:#6a0dad;color:#fff;padding:15px;font-size:20px}
+.btn{background:#580991;color:#fff;border:none;padding:10px 15px;border-radius:8px;cursor:pointer;margin-top:10px}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);align-items:center;justify-content:center}
+.modal-content{background:#fff;padding:20px;border-radius:12px;width:90%;max-width:400px;text-align:center}
+input,select{width:90%;padding:8px;margin:8px 0;border:1px solid #ccc;border-radius:6px}
+</style>
+</head>
+<body>
+
+<header>
+🆔 ID: <span id="userId">سيأخذ من البوت</span> | 👤 Username: <span id="username">سيأخذ من البوت</span> | 💰 الرصيد: <span id="balance">0</span>
+</header>
+
+<button class="btn" onclick="openModal()">➕ إضافة رصيد</button>
+
+<div class="modal" id="depositModal">
+  <div class="modal-content">
+    <h3>إضافة رصيد</h3>
+
+    <label>اختر العملة:</label>
+    <select id="currency" onchange="updatePreview()">
+      <option value="usd">دولار</option>
+      <option value="syp">ليرة سورية</option>
+    </select>
+
+    <label>أدخل المبلغ:</label>
+    <input type="number" id="amount" placeholder="المبلغ" oninput="updatePreview()">
+
+    <label>رقم العملية:</label>
+    <input type="text" id="transactionId" placeholder="رقم العملية">
+
+    <p>💵 كم سيضاف لحسابك: <span id="preview">0</span> ل.س</p>
+
+    <button class="btn" onclick="confirmDeposit()">موافق</button>
+    <br><br>
+    <button class="btn" style="background:#999;" onclick="closeModal()">إلغاء</button>
+  </div>
+</div>
+
+<script>
+// افتراضياً، سيتم جلب البيانات الحقيقية من بوت تيليجرام Web App
+let balance = 0;
+let userId = 123456789; // سيتم تحديثه من Web App
+let username = "@example"; // سيتم تحديثه من Web App
+
+document.getElementById("userId").innerText = userId;
+document.getElementById("username").innerText = username;
+
+function openModal(){ document.getElementById("depositModal").style.display="flex"; }
+function closeModal(){ 
+    document.getElementById("depositModal").style.display="none"; 
+    document.getElementById("amount").value=""; 
+    document.getElementById("transactionId").value=""; 
+    document.getElementById("preview").innerText="0"; 
+}
+
+function updatePreview(){
+  let amount = parseFloat(document.getElementById("amount").value) || 0;
+  let currency = document.getElementById("currency").value;
+  let displayAmount = (currency === "usd") ? amount * 11400 : amount;
+  document.getElementById("preview").innerText = displayAmount.toLocaleString();
+}
+
+function confirmDeposit(){
+  let amount = parseFloat(document.getElementById("amount").value);
+  let currency = document.getElementById("currency").value;
+  let transactionId = document.getElementById("transactionId").value;
+
+  if(!amount || !transactionId){ alert("⚠️ الرجاء إدخال المبلغ ورقم العملية"); return; }
+
+  // إرسال البيانات للبوت (المبلغ كما أدخله المستخدم)
+  fetch(`https://api.telegram.org/bot<TOKEN>/sendMessage`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      chat_id: "<ADMIN_GROUP_ID>",
+      text:`🆔 ID: ${userId}\n👤 Username: ${username}\n💵 المبلغ: ${amount} ${currency === "usd" ? "$" : "ل.س"}\n🔢 رقم العملية: ${transactionId}`
+    })
+  });
+
+  alert("✅ تم إرسال الطلب لمجموعة الشحن");
+  closeModal();
+}
+</script>
+</body>
+</html>
